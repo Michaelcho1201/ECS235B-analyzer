@@ -16,6 +16,7 @@ ECS235B-analyzer/
 │   ├── parser/            # Parser modules
 │   └── rules/             # Rules modules
 └── tests/                 # Test suite
+```
 
 ## Features
 
