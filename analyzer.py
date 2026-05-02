@@ -15,6 +15,7 @@ class Analyzer:
         self.dangerous = {"gets", "scanf", "strcpy", "strcat", "sprintf"}
 
     def analyze(self, filePath):
+        self.issues = []
         nodes = self.index.parse(filePath, args=['-std=c++23'])
         self.diagnostics(nodes)
         self.walkAst(nodes.cursor)
@@ -35,9 +36,12 @@ class Analyzer:
     def walkAst(self, node):
         if node.kind == clang.CursorKind.CALL_EXPR:
             if node.spelling in self.dangerous:
+                loc = node.location
+                file_obj = loc.file
                 self.issues.append({
-                    "file": node.location.file,
-                    "line": node.location.line,
+                    "file": file_obj.name if file_obj is not None else "<unknown>",
+                    "line": loc.line,
+                    "column": loc.column,
                     "severity": "WARNING",
                     "message": f"Unsafe function '{node.spelling}()' — use safer alternative"
                 })
@@ -58,7 +62,7 @@ if __name__ == "__main__":
     issues = data.analyze(filePath)
     
     if not issues:
-        print("✅ No issues found.")
+        print("No issues found.")
     else:
         for issue in issues:
             sev = issue['severity']
