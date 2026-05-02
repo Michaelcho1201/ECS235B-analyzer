@@ -1,19 +1,29 @@
 [build-system]
-requires = [libclang]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "vul-analyzer"
 version = "0.1.0"
 requires-python = ">=3.10"
 authors = [
-    { name = "Pichsorita", email = "" }
-    { name = "Alfredo Ortiz", email = "" }
-    { name = "Michael Cho", email = "" }
-    { name = "Tejas Khodekar", email = "" }
-    { name = "Vishal Krishna Chintakunta", email = ""}
+    { name = "Pichsorita" },
+    { name = "Alfredo Ortiz" },
+    { name = "Michael Cho" },
+    { name = "Tejas Khodekar" },
+    { name = "Vishal Krishna Chintakunta" },
 ]
 description = "A tool to analyze vulnerabilities in software projects."
 readme = "README.md"
+dependencies = [
+    "libclang>=16",
+]
+
+[project.scripts]
+analyze = "cli:main"
+
+[tool.setuptools]
+py-modules = ["analyzer", "cli"]
 
 [project.urls]
 Repository = "https://github.com/Michaelcho1201/ECS235B-analyzer"
