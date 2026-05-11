@@ -1,71 +1,71 @@
 import sys
 import clang.cindex as clang
+from clang.cindex import CursorKind
+
+from src.parser.parser import CFGBuilder
+from src.rules.dangerous_functions import DangerousFunctionRule
+from src.rules.uninitialized_var import UninitializedVarRule
+from src.rules.unused_var import UnusedVarRule
 
 SEVERITY_LABELS = {
     0: "NOTE",
     1: "WARNING",
     2: "ERROR",
-    3: "FATAL"
+    3: "FATAL",
 }
+
+RULES = [
+    DangerousFunctionRule(),
+    UninitializedVarRule(),
+    UnusedVarRule(),
+]
+
 
 class Analyzer:
     def __init__(self):
         self.index = clang.Index.create()
         self.issues = []
-        self.dangerous = {"gets", "scanf", "strcpy", "strcat", "sprintf"}
 
-    def analyze(self, filePath):
-        self.issues = []
-        nodes = self.index.parse(filePath, args=['-std=c++23'])
-        self.diagnostics(nodes)
-        self.walkAst(nodes.cursor)
+    def analyze(self, file_path):
+        tu = self.index.parse(file_path, args=["-std=c++23"])
+        self._collect_diagnostics(tu)
+        builder = CFGBuilder()
+        for cursor in tu.cursor.walk_preorder():
+            if cursor.kind == CursorKind.FUNCTION_DECL and cursor.is_definition():
+                cfg = builder.build(cursor)
+                for rule in RULES:
+                    self.issues.extend(rule.check(cfg))
         return self.issues
-        
-        
-    def diagnostics(self, node):
-        for diag in node.diagnostics:
-            file = diag.location.file
+
+    def _collect_diagnostics(self, tu):
+        for diag in tu.diagnostics:
+            f = diag.location.file
             self.issues.append({
-                "file": file.name if file is not None else "<unknown>",
+                "file": f.name if f is not None else "<unknown>",
                 "line": diag.location.line,
                 "column": diag.location.column,
                 "severity": SEVERITY_LABELS.get(diag.severity, "UNKNOWN"),
-                "message": diag.spelling
+                "message": diag.spelling,
             })
 
-    def walkAst(self, node):
-        if node.kind == clang.CursorKind.CALL_EXPR:
-            if node.spelling in self.dangerous:
-                loc = node.location
-                file_obj = loc.file
-                self.issues.append({
-                    "file": file_obj.name if file_obj is not None else "<unknown>",
-                    "line": loc.line,
-                    "column": loc.column,
-                    "severity": "WARNING",
-                    "message": f"Unsafe function '{node.spelling}()' — use safer alternative"
-                })
-                
-        for child in node.get_children():
-            self.walkAst(child)
 
-if __name__ == "__main__":       
-    filePath = sys.argv[1]
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python analyzer.py <file>")
+        sys.exit(1)
 
-    if len(sys.argv) == 2:
-        print("Beinning to analyze file: " + filePath)
-    else:
-        print("Please enter only the name of the file you want to analyze")
-        exit(1)
-        
-    data = Analyzer()
-    issues = data.analyze(filePath)
-    
+    file_path = sys.argv[1]
+    print(f"Analyzing: {file_path}")
+
+    analyzer = Analyzer()
+    issues = analyzer.analyze(file_path)
+
     if not issues:
         print("No issues found.")
     else:
         for issue in issues:
-            sev = issue['severity']
-            print(f"[{sev}] {issue['file']}:{issue['line']}:{issue['column']} — {issue['message']}")
-    
+            sev = issue["severity"]
+            col = issue.get("column", 0)
+            print(f"[{sev}] {issue['file']}:{issue['line']}:{col} — {issue['message']}")
+
     print("Done")

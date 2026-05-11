@@ -25,5 +25,9 @@ analyze = "cli:main"
 [tool.setuptools]
 py-modules = ["analyzer", "cli"]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
 [project.urls]
 Repository = "https://github.com/Michaelcho1201/ECS235B-analyzer"
