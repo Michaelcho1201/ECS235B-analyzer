@@ -1,0 +1,21 @@
+function,cwe,severity,cvss_range,message,recommendation
+gets,CWE-242; CWE-120,CRITICAL,9.0-10.0,Inherently dangerous function: gets performs no bounds checking.,Use fgets with an explicit buffer size.
+system,CWE-78,CRITICAL,9.0-10.0,Potential OS command injection through shell command execution.,Avoid shell execution; use fixed executable paths and separated arguments.
+popen,CWE-78,CRITICAL,9.0-10.0,Potential OS command injection through shell command execution.,Avoid shell execution; use safer process APIs with separated arguments.
+WinExec,CWE-78,CRITICAL,9.0-10.0,Potential Windows command execution injection risk.,Use CreateProcess with fixed executable paths and validated arguments.
+ShellExecute,CWE-78,CRITICAL,9.0-10.0,Potential command execution or file execution injection risk.,Avoid shell execution and validate executable paths and arguments.
+ShellExecuteEx,CWE-78,CRITICAL,9.0-10.0,Potential command execution or file execution injection risk.,Avoid shell execution and validate executable paths and arguments.
+strcpy,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: strcpy does not check destination buffer size.,"Use snprintf, strlcpy where available, or std::string/std::array with bounds checks."
+strcat,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: strcat appends without checking destination buffer size.,"Use snprintf, strlcat where available, or std::string with size validation."
+sprintf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: sprintf writes formatted output without a size limit.,Use snprintf with the destination buffer size.
+scanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded scanf input.,"Use a width limit, e.g. scanf(""%31s"", buf), or use fgets."
+vsprintf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: vsprintf writes formatted output without a size limit.,Use vsnprintf with the destination buffer size.
+sscanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded sscanf input.,Use a width limit or parse with safer bounded routines.
+fscanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded fscanf input.,Use a width limit or read with fgets and parse safely.
+vscanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded vscanf input.,Use bounded input patterns or fgets-based parsing.
+vsscanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded vsscanf input.,Use bounded input patterns or safer parsing.
+vfscanf,CWE-120,HIGH,7.0-8.9,Potential buffer overflow from unbounded vfscanf input.,Use bounded input patterns or fgets-based parsing.
+memcpy,CWE-120; CWE-787,HIGH,7.0-8.9,Potential out-of-bounds write from unchecked memory copy length.,Validate destination size before copying or use bounded abstractions.
+memmove,CWE-120; CWE-787,HIGH,7.0-8.9,Potential out-of-bounds write from unchecked memory move length.,Validate destination size before moving memory.
+tmpnam,CWE-377,HIGH,7.0-8.9,Insecure temporary file name creation may allow race conditions.,Use mkstemp or another secure temporary file API.
+mktemp,CWE-377,HIGH,7.0-8.9,Insecure temporary file name creation may allow race conditions.,Use mkstemp or another secure temporary file API.
