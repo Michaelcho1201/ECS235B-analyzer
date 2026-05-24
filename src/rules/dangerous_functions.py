@@ -7,7 +7,7 @@ from src.rules.rule import Rule
 class DangerousFunctionRule(Rule):
     """Flag calls to unsafe C/C++ functions using the CSV database."""
 
-    def __init__(self, csv_path="dangerous_functionsfinal_database.csv"):
+    def __init__(self, csv_path="src/rules/dangerous_functionsfinal_database.csv"):
         self.entries = self._load_csv_entries(csv_path)
 
     def _load_csv_entries(self, csv_path):
