@@ -15,7 +15,7 @@ SEVERITY_LABELS = {
 }
 
 RULES = [
-    DangerousFunctionRule("dangerous_functionsfinal_database.csv"),
+    DangerousFunctionRule("src/rules/dangerous_functionsfinal_database.csv"),
     UninitializedVarRule(),
     UnusedVarRule(),
 ]
