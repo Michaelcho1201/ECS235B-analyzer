@@ -6,6 +6,7 @@ from src.parser.parser import CFGBuilder
 from src.rules.dangerous_functions import DangerousFunctionRule
 from src.rules.uninitialized_var import UninitializedVarRule
 from src.rules.unused_var import UnusedVarRule
+from src.rules.tainted_data import TaintedDataRule
 
 SEVERITY_LABELS = {
     0: "NOTE",
@@ -18,6 +19,7 @@ RULES = [
     DangerousFunctionRule("src/rules/dangerous_functionsfinal_database.csv"),
     UninitializedVarRule(),
     UnusedVarRule(),
+    # TaintedDataRule(),
 ]
 
 
