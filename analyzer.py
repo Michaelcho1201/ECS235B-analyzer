@@ -5,6 +5,7 @@ from clang.cindex import CursorKind
 from src.parser.parser import CFGBuilder
 from src.rules.buffer_overflow import BufferOverflowRule
 from src.rules.dangerous_functions import DangerousFunctionRule
+from src.rules.tainted_data import TaintedDataRule
 from src.rules.uninitialized_var import UninitializedVarRule
 from src.rules.unused_var import UnusedVarRule
 
@@ -19,6 +20,7 @@ SEVERITY_LABELS = {
 RULES = [
     DangerousFunctionRule("src/rules/dangerous_functionsfinal_database.csv"),
     BufferOverflowRule(),
+    TaintedDataRule(),
     UninitializedVarRule(),
     UnusedVarRule(),
 ]
