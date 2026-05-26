@@ -68,6 +68,18 @@ if __name__ == "__main__":
         for issue in issues:
             sev = issue["severity"]
             col = issue.get("column", 0)
-            print(f"[{sev}] {issue['file']}:{issue['line']}:{col} — {issue['message']}")
+            line = (
+                f"[{sev}] {issue['file']}:{issue['line']}:{col} — {issue['message']}"
+            )
+            extras = []
+            if issue.get("cwe") is not None:
+                extras.append(f"CWE: {issue['cwe']}")
+            if issue.get("cvss_range") is not None:
+                extras.append(f"CVSS_RANGE: {issue['cvss_range']}")
+            if issue.get("recommendation") is not None:
+                extras.append(f"Recommendation: {issue['recommendation']}")
+            if extras:
+                line = f"{line} | " + " | ".join(extras)
+            print(line)
 
     print("Done")

@@ -55,12 +55,11 @@ class DangerousFunctionRule(Rule):
                     "column": loc.column,
                     "severity": entry["severity"],
                     "message": (
-                        f"Unsafe function '{function_name}()' found. "
-                        f"CWE: {entry['cwe']}. "
-                        f"CVSS: {entry['cvss']}. "
-                        f"{entry['message']} "
-                        f"Recommendation: {entry['recommendation']}"
+                        f"Unsafe function '{function_name}()' found. {entry['message']}"
                     ),
+                    "cwe": entry["cwe"],
+                    "cvss_range": entry["cvss"],
+                    "recommendation": entry["recommendation"],
                 })
 
         for child in node.get_children():
