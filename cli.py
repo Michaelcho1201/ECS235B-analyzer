@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import textwrap
 from collections import Counter
 from pathlib import Path
 
@@ -58,7 +59,9 @@ def _display_path(path: Path) -> str:
         return str(path)
 
 
-def _normalize_issue(issue: dict) -> tuple[str, str, int, int, str]:
+def _normalize_issue(
+    issue: dict,
+) -> tuple[str, str, int, int, str, str, str, str]:
     file = issue.get("file", "<unknown>")
     if hasattr(file, "name"):
         file = file.name
@@ -66,13 +69,60 @@ def _normalize_issue(issue: dict) -> tuple[str, str, int, int, str]:
     column = int(issue.get("column", 0))
     severity = str(issue.get("severity", "?"))
     message = str(issue.get("message", ""))
-    return severity, file, line, column, message
+    cwe = str(issue.get("cwe") or "")
+    cvss_range = str(issue.get("cvss_range") or "")
+    recommendation = str(issue.get("recommendation") or "")
+    return (
+        severity,
+        file,
+        line,
+        column,
+        message,
+        cwe,
+        cvss_range,
+        recommendation,
+    )
 
 
 def _ansi(color: bool, code: str) -> str:
     if not color:
         return ""
     return code
+
+
+def _table_usable_width() -> int:
+    """Character width available for the issue table (account for leading indent)."""
+    try:
+        cols = os.get_terminal_size().columns
+    except OSError:
+        cols = 120
+    # main() prints each table line with a two-space prefix
+    return max(48, min(cols - 2, 200))
+
+
+def _wrap_cell(text: str, width: int, *, max_lines: int) -> list[str]:
+    """Split text into lines of at most `width` chars; cap height and mark truncation."""
+    text = (text or "").replace("\n", " ")
+    if width <= 0:
+        return [""]
+    if not text:
+        return ["".ljust(width)]
+    raw = textwrap.wrap(
+        text,
+        width=width,
+        break_long_words=True,
+        break_on_hyphens=False,
+    )
+    if not raw:
+        return ["".ljust(width)]
+    if len(raw) <= max_lines:
+        return [ln[:width].ljust(width) for ln in raw]
+    head = raw[: max_lines - 1]
+    tail = " ".join(raw[max_lines - 1 :])
+    if len(tail) > width:
+        tail = tail[: max(0, width - 1)] + "…"
+    head.append(tail[:width].ljust(width))
+    return [ln[:width].ljust(width) for ln in head]
 
 
 def _format_issues_block(
@@ -88,6 +138,8 @@ def _format_issues_block(
     dim = _ansi(color, "\033[2m")
 
     sev_styles = {
+        "CRITICAL": _ansi(color, "\033[35m"),
+        "HIGH": _ansi(color, "\033[33m"),
         "WARNING": _ansi(color, "\033[33m"),
         "ERROR": _ansi(color, "\033[31m"),
         "FATAL": _ansi(color, "\033[31m"),
@@ -95,20 +147,76 @@ def _format_issues_block(
         "UNKNOWN": _ansi(color, "\033[35m"),
     }
 
+    usable = _table_usable_width()
+    sep = " "
+
     w_sev = max(len("Severity"), max((len(r[0]) for r in rows), default=0))
-    w_loc = max((len(f"L{r[2]}:{r[3]}") for r in rows), default=len("Location"))
+    w_loc = max(
+        len("Location"),
+        max((len(f"L{r[2]}:{r[3]}") for r in rows), default=0),
+    )
+    w_cvss = max(len("CVSS_RANGE"), max((len(r[6]) for r in rows), default=0))
+    # CWE column: cap width; long values wrap on continuation lines
+    max_cwe = max((len(r[5]) for r in rows), default=0)
+    w_cwe = max(len("CWE"), min(max_cwe, 22))
+    fixed = w_sev + w_loc + w_cvss + w_cwe + 5 * len(sep)
+    while fixed + 28 > usable and w_cwe > 6:
+        w_cwe -= 1
+        fixed = w_sev + w_loc + w_cvss + w_cwe + 5 * len(sep)
+
+    rem = max(28, usable - fixed)
+    min_rec = len("Recommendation")
+    w_msg = max(len("Issue"), rem // 2)
+    w_rec = rem - w_msg
+    if w_rec < min_rec:
+        w_rec = min_rec
+        w_msg = max(len("Issue"), rem - w_rec)
+    if w_msg < 12:
+        w_msg = 12
+        w_rec = max(min_rec, rem - w_msg)
+
+    table_width = w_sev + w_loc + w_msg + w_cwe + w_cvss + w_rec + 5 * len(sep)
 
     lines: list[str] = []
-    header = f"{bold}{'Severity'.ljust(w_sev)}  {'Location'.ljust(w_loc)}  Issue{reset}"
-    underline = f"{dim}{'─' * (w_sev + 2 + w_loc + 2 + 20)}{reset}"
+    header = (
+        f"{bold}{'Severity'.ljust(w_sev)}{sep}"
+        f"{'Location'.ljust(w_loc)}{sep}"
+        f"{'Issue'.ljust(w_msg)}{sep}"
+        f"{'CWE'.ljust(w_cwe)}{sep}"
+        f"{'CVSS_RANGE'.ljust(w_cvss)}{sep}"
+        f"{'Recommendation'.ljust(w_rec)}{reset}"
+    )
+    underline = f"{dim}{'─' * table_width}{reset}"
     lines.append(header)
     lines.append(underline)
 
-    for sev, _file, line, col, msg in rows:
+    pad_sev = " " * w_sev
+    pad_loc = " " * w_loc
+
+    for sev, _file, line, col, msg, cwe, cvss, rec in rows:
         style = sev_styles.get(sev, "")
         loc = f"L{line}:{col}"
-        sev_colored = f"{style}{sev.ljust(w_sev)}{reset}"
-        lines.append(f"{sev_colored}  {loc.ljust(w_loc)}  {msg}")
+        sev_plain = sev.ljust(w_sev)
+        sev_colored = f"{style}{sev_plain}{reset}"
+
+        msg_lines = _wrap_cell(msg, w_msg, max_lines=6)
+        cwe_lines = _wrap_cell(cwe, w_cwe, max_lines=3)
+        cvss_lines = _wrap_cell(cvss, w_cvss, max_lines=1)
+        rec_lines = _wrap_cell(rec, w_rec, max_lines=5)
+
+        n = max(len(msg_lines), len(cwe_lines), len(cvss_lines), len(rec_lines))
+        msg_lines.extend(["".ljust(w_msg)] * (n - len(msg_lines)))
+        cwe_lines.extend(["".ljust(w_cwe)] * (n - len(cwe_lines)))
+        cvss_lines.extend(["".ljust(w_cvss)] * (n - len(cvss_lines)))
+        rec_lines.extend(["".ljust(w_rec)] * (n - len(rec_lines)))
+
+        for i in range(n):
+            sev_cell = sev_colored if i == 0 else pad_sev
+            loc_cell = loc.ljust(w_loc) if i == 0 else pad_loc
+            lines.append(
+                f"{sev_cell}{sep}{loc_cell}{sep}{msg_lines[i]}{sep}"
+                f"{cwe_lines[i]}{sep}{cvss_lines[i]}{sep}{rec_lines[i]}"
+            )
 
     return "\n".join(lines)
 
