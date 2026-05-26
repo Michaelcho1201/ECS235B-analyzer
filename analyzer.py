@@ -3,19 +3,22 @@ import clang.cindex as clang
 from clang.cindex import CursorKind
 
 from src.parser.parser import CFGBuilder
+from src.rules.buffer_overflow import BufferOverflowRule
 from src.rules.dangerous_functions import DangerousFunctionRule
 from src.rules.uninitialized_var import UninitializedVarRule
 from src.rules.unused_var import UnusedVarRule
 
 SEVERITY_LABELS = {
-    0: "NOTE",
-    1: "WARNING",
-    2: "ERROR",
-    3: "FATAL",
+    0: "IGNORED",
+    1: "NOTE",
+    2: "WARNING",
+    3: "ERROR",
+    4: "FATAL",
 }
 
 RULES = [
     DangerousFunctionRule("src/rules/dangerous_functionsfinal_database.csv"),
+    BufferOverflowRule(),
     UninitializedVarRule(),
     UnusedVarRule(),
 ]
@@ -27,6 +30,7 @@ class Analyzer:
         self.issues = []
 
     def analyze(self, file_path):
+        self.issues = []
         tu = self.index.parse(file_path, args=["-std=c++23"])
         self._collect_diagnostics(tu)
         builder = CFGBuilder()
