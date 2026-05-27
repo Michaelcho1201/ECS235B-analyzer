@@ -6,7 +6,11 @@
 
 ### Development
 
-Prerequisites: **Python 3.10+** and a working **libclang** installation (required by the `libclang` Python package).
+Prerequisites:
+
+- **Python 3.10+**
+- **GCC** (used by libclang to locate system headers — install via `sudo apt install gcc` on Debian/Ubuntu)
+- **Clang / libclang 16+** (`sudo apt install clang` on Debian/Ubuntu)
 
 From the repository root:
 
@@ -17,6 +21,20 @@ pip install -e .
 ```
 
 This installs the package in editable mode so code changes take effect without reinstalling.
+
+#### Header search path
+
+libclang needs access to Clang's built-in headers (`stddef.h`, `stdarg.h`, etc.). If you see errors like `'stddef.h' file not found` during analysis, set `CPATH` before running the analyzer:
+
+```bash
+export CPATH=$(clang -print-resource-dir)/include
+```
+
+To avoid running this every time, append it to your virtual environment's activate script so it is set automatically on `source .venv/bin/activate`:
+
+```bash
+echo 'export CPATH=$(clang -print-resource-dir)/include' >> .venv/bin/activate
+```
 
 ## Usage
 
