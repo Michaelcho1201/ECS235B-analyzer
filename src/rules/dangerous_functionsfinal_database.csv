@@ -19,3 +19,40 @@ memcpy,CWE-120; CWE-787,HIGH,7.0-8.9,Potential out-of-bounds write from unchecke
 memmove,CWE-120; CWE-787,HIGH,7.0-8.9,Potential out-of-bounds write from unchecked memory move length.,Validate destination size before moving memory.
 tmpnam,CWE-377,HIGH,7.0-8.9,Insecure temporary file name creation may allow race conditions.,Use mkstemp or another secure temporary file API.
 mktemp,CWE-377,HIGH,7.0-8.9,Insecure temporary file name creation may allow race conditions.,Use mkstemp or another secure temporary file API.
+printf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Use a string literal as the format argument e.g. printf("%s" str).
+fprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Use a string literal as the format argument and never pass user data directly.
+vprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Validate and sanitize the format string before use.
+vfprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Validate and sanitize the format string before use.
+dprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Use a string literal as the format argument.
+vdprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if format string is user-controlled.,Validate and sanitize the format string before use.
+wprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if wide format string is user-controlled.,Use a wide string literal as the format argument.
+fwprintf,CWE-134,HIGH,7.0-8.9,Potential format string injection if wide format string is user-controlled.,Use a wide string literal as the format argument.
+fopen,CWE-22,HIGH,7.0-8.9,Potential path traversal if filename is user-controlled.,Validate and canonicalize file paths; apply strict allowlists before opening.
+open,CWE-22,HIGH,7.0-8.9,Potential path traversal if path argument is user-controlled.,Validate and canonicalize file paths before use; apply strict allowlists.
+openat,CWE-22,HIGH,7.0-8.9,Potential path traversal if path argument is user-controlled.,Validate and canonicalize paths; use a restricted directory file descriptor.
+freopen,CWE-22,HIGH,7.0-8.9,Potential path traversal if filename is user-controlled.,Validate and canonicalize file paths before reopening.
+rename,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted source or destination path.,Validate both path arguments before renaming.
+remove,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may cause unintended file deletion.,Validate and canonicalize the path before removal.
+unlink,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may cause unintended file deletion.,Validate and canonicalize the path before unlinking.
+rmdir,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may delete an unintended directory.,Validate and canonicalize the directory path before removal.
+mkdir,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may create a directory in an unintended location.,Validate and canonicalize the directory path before creation.
+chmod,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may alter permissions on an unintended file.,Validate and canonicalize the path before changing permissions.
+chown,CWE-22,HIGH,7.0-8.9,Potential path traversal: tainted path may alter ownership of an unintended file.,Validate and canonicalize the path before changing ownership.
+execl,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to execl.,Use fixed executable paths and validate all arguments.
+execle,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to execle.,Use fixed executable paths and validate all arguments and environment.
+execlp,CWE-78,CRITICAL,9.0-10.0,Potential command injection: execlp searches PATH which may be attacker-influenced.,Use execv with an absolute path instead of execlp.
+execv,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to execv.,Use fixed executable paths and validate all arguments.
+execve,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to execve.,Use fixed executable paths and validate all arguments and environment.
+execvp,CWE-78,CRITICAL,9.0-10.0,Potential command injection: execvp searches PATH which may be attacker-influenced.,Use execve with an absolute path instead of execvp.
+execvpe,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to execvpe.,Use fixed executable paths and validate all arguments.
+posix_spawn,CWE-78,CRITICAL,9.0-10.0,Potential command injection: tainted argument passed to posix_spawn.,Validate executable path and all arguments before spawning.
+CreateProcess,CWE-78,CRITICAL,9.0-10.0,Potential Windows command injection through CreateProcess.,Use fixed executable paths with separate argument lists; avoid the lpCommandLine form.
+CreateProcessA,CWE-78,CRITICAL,9.0-10.0,Potential Windows command injection through CreateProcessA.,Use fixed executable paths with separate argument lists; avoid the lpCommandLine form.
+CreateProcessW,CWE-78,CRITICAL,9.0-10.0,Potential Windows command injection through CreateProcessW.,Use fixed executable paths with separate argument lists; avoid the lpCommandLine form.
+stpcpy,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: stpcpy does not check destination buffer size.,Use stpncpy or snprintf with an explicit size limit.
+wcscpy,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: wcscpy does not check destination buffer size.,Use wcsncpy or a bounded wide-string alternative.
+wcscat,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: wcscat appends without checking destination buffer size.,Use wcsncat or a bounded wide-string alternative.
+strncat,CWE-120,HIGH,7.0-8.9,Potential buffer overflow: strncat size parameter is remaining space not total buffer size.,Pass sizeof(buf)-strlen(buf)-1 as the size or use snprintf.
+mysql_query,CWE-89,CRITICAL,9.0-10.0,Potential SQL injection: tainted data in query string passed to mysql_query.,Use parameterized queries or prepared statements with mysql_stmt_prepare.
+sqlite3_exec,CWE-89,CRITICAL,9.0-10.0,Potential SQL injection: tainted data in SQL string passed to sqlite3_exec.,Use sqlite3_prepare_v2 with bound parameters instead.
+PQexec,CWE-89,CRITICAL,9.0-10.0,Potential SQL injection: tainted data in PostgreSQL query passed to PQexec.,Use PQexecParams with parameterized queries instead.
