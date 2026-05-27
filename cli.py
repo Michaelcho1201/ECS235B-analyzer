@@ -217,6 +217,7 @@ def _format_issues_block(
                 f"{sev_cell}{sep}{loc_cell}{sep}{msg_lines[i]}{sep}"
                 f"{cwe_lines[i]}{sep}{cvss_lines[i]}{sep}{rec_lines[i]}"
             )
+        lines.append("")
 
     return "\n".join(lines)
 
