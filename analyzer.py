@@ -8,7 +8,7 @@ from src.rules.dangerous_functions import DangerousFunctionRule
 from src.rules.tainted_data import TaintedDataRule
 from src.rules.uninitialized_var import UninitializedVarRule
 from src.rules.unused_var import UnusedVarRule
-from src.rules.unused_var import NullDereference
+from src.rules.null_dereference import NullDereference
 
 SEVERITY_LABELS = {
     0: "IGNORED",
