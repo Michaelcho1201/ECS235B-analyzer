@@ -38,9 +38,11 @@ class Analyzer:
         builder = CFGBuilder()
         for cursor in tu.cursor.walk_preorder():
             if cursor.kind == CursorKind.FUNCTION_DECL and cursor.is_definition():
-                cfg = builder.build(cursor)
-                for rule in RULES:
-                    self.issues.extend(rule.check(cfg))
+                if cursor.location.file and cursor.location.file.name == file_path:
+                    cfg = builder.build(cursor)
+                    for rule in RULES:
+                        print(f'{rule}')
+                        self.issues.extend(rule.check(cfg))
         return self.issues
 
     def _collect_diagnostics(self, tu):
