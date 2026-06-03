@@ -1,6 +1,7 @@
 # ECS235B-analyzer
 
 ## Overview
+This program is a static code analyzer that will analyzer a program with out having to run the program. It would check to see if it is using any deprecated functions as one of its functions, and as well syntax errors. There are other functions to the program such as buffer overflow, dangerous fucntions, memory leak, null dereferences, and symbolic executions. Together they will inspect code that may have deprecapted functions, a memory that has not been freed, or check for edge cases. The program in its entirety will check for specific issues in the code(read section features for more details) and notify the client that such issue exist at this line of the analyzed code. We have commands that would allow you to run all functions for a thorough analysis or are just the mentioned function. To learn how to do this read the development section where we show you the commands to do this. Overall this program will analyze code for certain patterns and notify the client what it has analyzed.
 
 ## Installation
 
@@ -72,6 +73,9 @@ ECS235B-analyzer/
 ```
 
 ## Features
+
+NULL_Derefence: This function will analyze code to find if there is null dereferences in the code. 
+
 
 ## Contributing
 
