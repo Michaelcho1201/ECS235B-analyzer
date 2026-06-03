@@ -61,7 +61,6 @@ class Analyzer:
 
         for cfg in func_cfgs:
             for rule in all_rules:
-                print(f'{rule}')
                 self.issues.extend(rule.check(cfg))
 
         return self.issues

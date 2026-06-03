@@ -38,6 +38,11 @@ RESOURCE_REGISTRY: dict[str, tuple[str, str]] = {
 _ALLOC_FUNCS:   frozenset[str] = frozenset(RESOURCE_REGISTRY)
 _DEALLOC_FUNCS: frozenset[str] = frozenset(v[0] for v in RESOURCE_REGISTRY.values())
 
+# CWE/CVSS metadata per issue type
+_CWE_RESOURCE_LEAK   = "CWE-401 | CVSS: 5.5"   # Missing Release of Memory after Effective Lifetime
+_CWE_DOUBLE_FREE     = "CWE-415 | CVSS: 7.5"   # Double Free
+_CWE_WRONG_DEALLOC   = "CWE-762 | CVSS: 6.5"   # Mismatched Memory Management Routines
+
 
 def _join(s1: _RState, s2: _RState) -> _RState:
     if s1 == s2:
@@ -128,8 +133,11 @@ class MemoryLeakRule(Rule):
                 if info:
                     file_, line, col, name = info
                     label = self._resource_label.get(src) or self._resource_label.get(vk, "memory")
-                    self._emit(file_, line, col, "WARNING",
-                               f"Resource leak: '{name}' ({label}) allocated here is never released on all paths")
+                    self._emit(
+                        file_, line, col, "WARNING",
+                        f"Resource leak: '{name}' ({label}) allocated here is never released on all paths"
+                        f" | {_CWE_RESOURCE_LEAK}",
+                    )
 
         return self._issues
 
@@ -239,7 +247,8 @@ class MemoryLeakRule(Rule):
             self._emit(
                 loc.file.name if loc.file else "<unknown>",
                 loc.line, loc.column, "ERROR",
-                f"Wrong dealloc: '{arg_name}' is a {label}; use '{expected}' not '{dealloc_fn}'",
+                f"Wrong dealloc: '{arg_name}' is a {label}; use '{expected}' not '{dealloc_fn}'"
+                f" | {_CWE_WRONG_DEALLOC}",
             )
 
         st[vk] = _RState.FREED
@@ -432,7 +441,7 @@ class MemoryLeakRule(Rule):
                 "line": key[1],
                 "column": key[2],
                 "severity": "ERROR",
-                "message": f"Double-free: '{var_name}' may already be freed",
+                "message": f"Double-free: '{var_name}' may already be freed | {_CWE_DOUBLE_FREE}",
             })
 
     def _emit(self, file_: str, line: int, col: int, severity: str, msg: str) -> None:
