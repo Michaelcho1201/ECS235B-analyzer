@@ -38,10 +38,22 @@ RESOURCE_REGISTRY: dict[str, tuple[str, str]] = {
 _ALLOC_FUNCS:   frozenset[str] = frozenset(RESOURCE_REGISTRY)
 _DEALLOC_FUNCS: frozenset[str] = frozenset(v[0] for v in RESOURCE_REGISTRY.values())
 
-# CWE/CVSS metadata per issue type
-_CWE_RESOURCE_LEAK   = "CWE-401 | CVSS: 5.5"   # Missing Release of Memory after Effective Lifetime
-_CWE_DOUBLE_FREE     = "CWE-415 | CVSS: 7.5"   # Double Free
-_CWE_WRONG_DEALLOC   = "CWE-762 | CVSS: 6.5"   # Mismatched Memory Management Routines
+# CWE/CVSS metadata per issue type — stored as separate fields per Rita's feedback
+_ISSUE_RESOURCE_LEAK = {
+    "cwe": "CWE-401",
+    "cvss_range": "5.5",
+    "recommendation": "Ensure all allocated resources are freed before function exits on all paths.",
+}
+_ISSUE_DOUBLE_FREE = {
+    "cwe": "CWE-415",
+    "cvss_range": "7.5",
+    "recommendation": "Ensure each resource is freed exactly once.",
+}
+_ISSUE_WRONG_DEALLOC = {
+    "cwe": "CWE-762",
+    "cvss_range": "6.5",
+    "recommendation": "Use the matching deallocation function for each resource type.",
+}
 
 
 def _join(s1: _RState, s2: _RState) -> _RState:
@@ -135,8 +147,8 @@ class MemoryLeakRule(Rule):
                     label = self._resource_label.get(src) or self._resource_label.get(vk, "memory")
                     self._emit(
                         file_, line, col, "WARNING",
-                        f"Resource leak: '{name}' ({label}) allocated here is never released on all paths"
-                        f" | {_CWE_RESOURCE_LEAK}",
+                        f"Resource leak: '{name}' ({label}) allocated here is never released on all paths",
+                        _ISSUE_RESOURCE_LEAK,
                     )
 
         return self._issues
@@ -247,8 +259,8 @@ class MemoryLeakRule(Rule):
             self._emit(
                 loc.file.name if loc.file else "<unknown>",
                 loc.line, loc.column, "ERROR",
-                f"Wrong dealloc: '{arg_name}' is a {label}; use '{expected}' not '{dealloc_fn}'"
-                f" | {_CWE_WRONG_DEALLOC}",
+                f"Wrong dealloc: '{arg_name}' is a {label}; use '{expected}' not '{dealloc_fn}'",
+                _ISSUE_WRONG_DEALLOC,
             )
 
         st[vk] = _RState.FREED
@@ -441,17 +453,21 @@ class MemoryLeakRule(Rule):
                 "line": key[1],
                 "column": key[2],
                 "severity": "ERROR",
-                "message": f"Double-free: '{var_name}' may already be freed | {_CWE_DOUBLE_FREE}",
+                "message": f"Double-free: '{var_name}' may already be freed",
+                **_ISSUE_DOUBLE_FREE,
             })
 
-    def _emit(self, file_: str, line: int, col: int, severity: str, msg: str) -> None:
+    def _emit(self, file_: str, line: int, col: int, severity: str, msg: str, meta: dict | None = None) -> None:
         key = (file_, line, col, msg)
         if key not in self._reported:
             self._reported.add(key)
-            self._issues.append({
+            issue = {
                 "file": file_,
                 "line": line,
                 "column": col,
                 "severity": severity,
                 "message": msg,
-            })
+            }
+            if meta:
+                issue.update(meta)
+            self._issues.append(issue)
