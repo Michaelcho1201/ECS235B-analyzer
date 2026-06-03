@@ -74,6 +74,10 @@ ECS235B-analyzer/
 
 ## Features
 
+ Deprecated functions analysis: This code would search for deprecated functions that are listed in the data base and check if its being used in the program it is analyzing. 
+
+ Syntax Error: This code will analyze syntax errors in a program. 
+
 NULL_Derefence: This function will analyze code to find if there is null dereferences in the code. 
 
 
