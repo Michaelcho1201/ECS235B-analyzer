@@ -13,19 +13,12 @@ NULL_RETURNING_FUNCS = {
 
 
 class NullDereference(Rule):
-    """
-    Dataflow analysis over the CFG.
 
-    State = set of variable names that are *possibly* null at a given program point.
-    - GEN : variables assigned NULL/nullptr/0 or from a null-returning function.
-    - KILL: variables that have been null-checked (appear as condition in an if).
-    """
 
     def __init__(self, targetFile=None):
         self.targetFile = targetFile
         self.issues = []
 
-    # ── null-literal / null-source detection ───────────────────────────────
 
     def _is_null_literal(self, node):
         """True if node is NULL / nullptr / integer literal 0."""
@@ -76,19 +69,16 @@ class NullDereference(Rule):
         return node
 
     def _operand_var(self, node):
-        """If `node` (after unwrapping) is a direct reference to a variable, return its name."""
+    
         node = self._unwrap(node)
         if node is not None and node.kind == clang.CursorKind.DECL_REF_EXPR:
             return node.spelling
         return None
 
-    # ── GEN / KILL for declarations and assignments ────────────────────────
 
     def _apply_genkill(self, node, null_vars):
-        """Update null_vars in-place based on declarations / plain assignments."""
         kind = node.kind
 
-        # `int *p = ...;` arrives as DECL_STMT wrapping one or more VAR_DECLs.
         if kind == clang.CursorKind.DECL_STMT:
             for child in node.get_children():
                 self._apply_genkill(child, null_vars)
@@ -105,8 +95,6 @@ class NullDereference(Rule):
                 null_vars.discard(node.spelling)
             return
 
-        # `lhs = rhs` — only treat as GEN/KILL when the target is a plain variable
-        # (NOT a dereference like `*p = ...` or `n->f = ...`).
         if kind == clang.CursorKind.BINARY_OPERATOR:
             op_spellings = [t.spelling for t in node.get_tokens()]
             if "=" in op_spellings:
@@ -120,7 +108,6 @@ class NullDereference(Rule):
                         else:
                             null_vars.discard(var)
 
-    # ── dereference detection ──────────────────────────────────────────────
 
     def _pointer_operand(self, node):
         """Return the node being dereferenced by a deref expression, else None."""
@@ -135,7 +122,7 @@ class NullDereference(Rule):
 
         if kind in (clang.CursorKind.MEMBER_REF_EXPR,
                     clang.CursorKind.ARRAY_SUBSCRIPT_EXPR):
-            # The object/array being dereferenced is the first child.
+            
             return children[0] if children else None
 
         return None
@@ -161,7 +148,7 @@ class NullDereference(Rule):
         }
 
     def _find_derefs(self, node, null_vars, new_issues):
-        """Recursively scan a statement subtree for dereferences of possibly-null vars."""
+        
         operand = self._pointer_operand(node)
         if operand is not None:
             var = self._operand_var(operand)
@@ -174,25 +161,16 @@ class NullDereference(Rule):
             self._find_derefs(child, null_vars, new_issues)
 
     def _process_stmt(self, node, null_vars):
-        """
-        Detect dereferences in `node`, then update null_vars for this statement.
-        Returns list of new issues found.
-        """
+
         new_issues = []
-        # Reads (dereferences) happen at the current state, before any
-        # reassignment performed by this same statement.
+        
         self._find_derefs(node, null_vars, new_issues)
         self._apply_genkill(node, null_vars)
         return new_issues
 
-    # ── null-check detection (for KILL sets) ──────────────────────────────
 
     def _vars_checked_in_condition(self, cond_node):
-        """
-        Returns (null_confirmed, null_cleared):
-        - null_confirmed: vars proven null in the THEN branch (== nullptr)
-        - null_cleared:   vars proven non-null in the THEN branch (!= nullptr / if(ptr))
-        """
+
         null_confirmed = set()
         null_cleared = set()
         if cond_node is None:
@@ -210,9 +188,9 @@ class NullDereference(Rule):
                     vars_in_cond.add(var)
 
             if "!=" in toks:
-                null_cleared |= vars_in_cond   # ptr != NULL → safe in then-branch
+                null_cleared |= vars_in_cond   
             elif "==" in toks:
-                null_confirmed |= vars_in_cond  # ptr == NULL → still null in then-branch
+                null_confirmed |= vars_in_cond  
 
         elif kind == clang.CursorKind.UNARY_OPERATOR:
             toks = [t.spelling for t in cond_node.get_tokens()]
@@ -220,17 +198,16 @@ class NullDereference(Rule):
                 for child in cond_node.get_children():
                     var = self._extract_var_name(child)
                     if var:
-                        null_cleared.add(var)  # !ptr → ptr is null, then-branch is "null path"
+                        null_cleared.add(var)  
 
         elif kind == clang.CursorKind.DECL_REF_EXPR:
-            null_cleared.add(cond_node.spelling)  # if(ptr) → non-null in then-branch
+            null_cleared.add(cond_node.spelling)  
 
         return null_confirmed, null_cleared
 
-    # ── dataflow driver ────────────────────────────────────────────────────
 
     def check(self, cfg):
-        """Run the full CFG + dataflow analysis on one function."""
+
         self.issues = []
         all_blocks = cfg.blocks
 
@@ -242,16 +219,15 @@ class NullDereference(Rule):
         while worklist:
             block = worklist.pop(0)
 
-            # IN[B] = union of OUT[P] for all predecessors P
             merged = set()
             for pred in block.preds:
                 merged |= out_state[pred.id]
             in_state[block.id] = merged
 
-            null_vars = set(merged)  # working copy
+            null_vars = set(merged)  
 
             for stmt in block.stmts:
-                # If this stmt is an if-condition, apply KILL before body
+               
                 null_confirmed, null_cleared = self._vars_checked_in_condition(stmt)
                 null_vars -= null_cleared
                 null_vars |= null_confirmed
