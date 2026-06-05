@@ -74,11 +74,13 @@ ECS235B-analyzer/
 
 ## Features
 
- Deprecated functions analysis: This code would search for deprecated functions that are listed in the data base and check if its being used in the program it is analyzing. 
+ Deprecated Function Analysis: Detects dangerous or deprecated functions listed in the database and reports when they are used in the analyzed program.
 
- Syntax Error: This code will analyze syntax errors in a program. 
+ Syntax Error Analysis: Uses libclang diagnostics to identify syntax errors in the analyzed source code.
 
-NULL_Derefence: This function will analyze code to find if there is null dereferences in the code. 
+ Null Dereference Analysis: Checks for cases where the code may dereference a null pointer.
+
+ Buffer Overflow Analysis: Detects possible buffer overflow patterns involving fixed-size arrays, loop-based indexing, unsafe string copy functions, memory copy functions, and unbounded input.
 
 
 ## Contributing
