@@ -1,7 +1,14 @@
-# ECS235B-analyzer
+# ECS235B - Static Code Analyzer
 
 ## Overview
 This program is a static code analyzer that will analyzer a program with out having to run the program. It would check to see if it is using any deprecated functions as one of its functions, and as well syntax errors. There are other functions to the program such as buffer overflow, dangerous fucntions, memory leak, null dereferences, and symbolic executions. Together they will inspect code that may have deprecapted functions, a memory that has not been freed, or check for edge cases. The program in its entirety will check for specific issues in the code(read section features for more details) and notify the client that such issue exist at this line of the analyzed code. We have commands that would allow you to run all functions for a thorough analysis or are just the mentioned function. To learn how to do this read the development section where we show you the commands to do this. Overall this program will analyze code for certain patterns and notify the client what it has analyzed.
+
+Authors:
+- Alfredo Ortiz
+- Pichsorita yim
+- Tejas Khode
+- Michael Cho
+- Vishal Krishna Chintakunta
 
 ## Installation
 
@@ -74,13 +81,13 @@ ECS235B-analyzer/
 
 ## Features
 
- Deprecated Function Analysis: Detects dangerous or deprecated functions listed in the database and reports when they are used in the analyzed program.
+ • Deprecated Function Analysis: Detects dangerous or deprecated functions listed in the database and reports when they are used in the analyzed program.
 
- Syntax Error Analysis: Uses libclang diagnostics to identify syntax errors in the analyzed source code.
+ • Syntax Error Analysis: Uses libclang diagnostics to identify syntax errors in the analyzed source code.
 
- Null Dereference Analysis: Checks for cases where the code may dereference a null pointer.
+ • Null Dereference Analysis: Checks for cases where the code may dereference a null pointer.
 
- Buffer Overflow Analysis: Detects possible buffer overflow patterns involving fixed-size arrays, loop-based indexing, unsafe string copy functions, memory copy functions, and unbounded input.
+ • Buffer Overflow Analysis: Detects possible buffer overflow patterns involving fixed-size arrays, loop-based indexing, unsafe string copy functions, memory copy functions, and unbounded input.
 
 
 ## Contributing
